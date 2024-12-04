@@ -1,11 +1,16 @@
 const Company = require('../models/companyModel');
+const jwt = require('jsonwebtoken');
 
 // @desc Get all companies
 // @route GET /api/companies
 // @access Public
 const getCompanies = async (req, res) => {
   try {
-    const companies = await Company.find();
+    const token = req.params.token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your secret key here
+    const userId = decoded.id; 
+    console.log("userId",userId)
+    const companies = await Company.find({ employerId: userId });
     res.status(200).json(companies);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -17,13 +22,16 @@ const getCompanies = async (req, res) => {
 // @access Public
 const addCompany = async (req, res) => {
   const { name, description, industry, website, location, size, email, phone } = req.body;
+  const token = req.params.token
+  const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your secret key here
+  const userId = decoded.id; 
 
   if (!name || !email) {
     return res.status(400).json({ message: 'Name and Email are required' });
   }
 
   try {
-    const company = new Company({ name, description, industry, website, location, size, email, phone });
+    const company = new Company({ employerId: userId , name, description, industry, website, location, size, email, phone });
     const createdCompany = await company.save();
     res.status(201).json(createdCompany);
   } catch (error) {
@@ -35,10 +43,13 @@ const addCompany = async (req, res) => {
 // @route PUT /api/companies/:id
 // @access Public
 const updateCompany = async (req, res) => {
-  const { id } = req.params;
+  const { token } = req.params;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your secret key here
+  const userId = decoded.id; 
+  console.log("userId",userId)
 
   try {
-    const company = await Company.findByIdAndUpdate(id, req.body, { new: true });
+    const company = await Company.findOneAndUpdate({employerId :userId}, req.body, { new: true });
 
     if (!company) {
       return res.status(404).json({ message: 'Company not found' });

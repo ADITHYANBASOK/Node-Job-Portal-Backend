@@ -92,7 +92,7 @@ exports.signIn = async (req, res) => {
     const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     // Send token to the frontend
-    return res.json({ success: true, token });
+    return res.json({ success: true, token ,role: user.role });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: 'Server error' });

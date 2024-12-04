@@ -8,7 +8,7 @@ const {
 
 const router = express.Router();
 
-router.route('/').get(getCompanies).post(addCompany);
-router.route('/:id').put(updateCompany).delete(deleteCompany);
+router.route('/:token').get(getCompanies).post(addCompany);
+router.route('/:token').put(updateCompany).delete(deleteCompany);
 
 module.exports = router;
