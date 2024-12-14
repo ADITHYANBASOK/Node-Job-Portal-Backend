@@ -15,6 +15,34 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+exports.getUserByToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Verify the token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your secret key
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid or expired token' });
+    }
+
+    const userId = decoded.id; // Extract user ID from token
+    console.log("Decoded user ID:", userId);
+
+    // Fetch the user details from the database
+    const user = await User.findById(userId).select('name email'); // Exclude sensitive data like password
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
 // @desc    Create a new user
 // @route   POST /api/users
 exports.createUser = async (req, res) => {

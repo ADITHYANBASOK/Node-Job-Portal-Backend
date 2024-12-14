@@ -9,6 +9,7 @@ const errorHandler = require('./middleware/errorMiddleware');
 const jobRouter = require('./routes/jobRouter');
 const messageRouter = require('./routes/messageRouter');
 const companyRouter = require('./routes/companyRouter');
+const userProfileRouter = require('./routes/userProfileRouter');
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +30,8 @@ app.use('/api/auth', userRoutes);
 app.use('/api/jobs',jobRouter);
 app.use('/api/messages',messageRouter)
 app.use('/api/companies', companyRouter);
+app.use('/api/profile', userProfileRouter);
+
 
 
 // Error Middleware
