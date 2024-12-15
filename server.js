@@ -10,6 +10,8 @@ const jobRouter = require('./routes/jobRouter');
 const messageRouter = require('./routes/messageRouter');
 const companyRouter = require('./routes/companyRouter');
 const userProfileRouter = require('./routes/userProfileRouter');
+const skillRouter = require('./routes/skillRouter');
+const experienceRouter = require('./routes/experienceRouter');
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +33,10 @@ app.use('/api/jobs',jobRouter);
 app.use('/api/messages',messageRouter)
 app.use('/api/companies', companyRouter);
 app.use('/api/profile', userProfileRouter);
+app.use('/api/skill', skillRouter);
+app.use('/api/experience', experienceRouter);
+
+
 
 
 
