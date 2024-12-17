@@ -1,6 +1,7 @@
 const Job = require("../models/jobModel");
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const Company = require("../models/companyModel");
 
 
 // Create a new job
@@ -212,6 +213,139 @@ exports.getJobById = async (req, res) => {
   } catch (error) {
     console.error("Error fetching job details:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.AllgetJobs = async (req, res) => {
+  try {
+    console.log("Hoi")
+
+    const { token } = req.params;
+    console.log("Hoi")
+
+    // Decode the token
+    let employerId;
+    // try {
+    //   const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //   console.log("Decoded Token Payload:", decoded);
+    //   employerId = new mongoose.Types.ObjectId(decoded.id);
+    // } catch (error) {
+    //   console.error("Token Verification Error:", error.message);
+    //   return res.status(401).json({ message: "Invalid or expired token" });
+    // }
+
+    // Aggregation pipeline with $lookup
+    const jobs = await Job.aggregate([
+      // {
+      //   $match: { employerId }, // Filter jobs by employerId
+      // },
+      {
+        $lookup: {
+          from: 'companies', // Ensure collection name matches your database
+          localField: 'employerId',
+          foreignField: 'employerId',
+          as: 'company',
+        },
+      },
+      {
+        $unwind: { path: '$company', preserveNullAndEmptyArrays: true },
+      },
+    ]);
+
+
+    if (!jobs.length) {
+      return res.status(404).json({ message: 'No jobs found for this employer' });
+    }
+
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getUserJobById = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract job ID and token from the request params
+    const jobId = id;
+
+    // Decode the token to get the employer ID
+    // let employerId;
+    // try {
+    //   const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    //   console.log("Decoded Token Payload:", decoded);
+    //   employerId = new mongoose.Types.ObjectId(decoded.id);
+    // } catch (error) {
+    //   console.error("Token Verification Error:", error.message);
+    //   return res.status(401).json({ message: "Invalid or expired token" });
+    // }
+
+    // Validate the job ID format
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({ message: "Invalid Job ID" });
+    }
+
+    // Aggregation pipeline to fetch the job with associated company details
+    const jobDetails = await Job.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(jobId) }, // Match the job ID and employer ID
+      },
+      {
+        $lookup: {
+          from: 'companies', // Ensure this matches your database collection name
+          localField: 'employerId',
+          foreignField: 'employerId',
+          as: 'company',
+        },
+      },
+      {
+        $unwind: { path: '$company', preserveNullAndEmptyArrays: true }, // Include company details if available
+      },
+    ]);
+
+    if (!jobDetails.length) {
+      return res.status(404).json({ message: "Job not found or you do not have access to this job" });
+    }
+
+    res.status(200).json(jobDetails[0]); // Return the single job details
+  } catch (error) {
+    console.error("Error fetching job details:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+ exports.getJobsByCompany = async (req, res) => {
+  const { companyId } = req.params;
+  console.log("companyId",companyId)
+
+  try {
+    // Validate companyId
+    if (!mongoose.Types.ObjectId.isValid(companyId)) {
+      return res.status(400).json({ message: 'Invalid company ID format' });
+    }
+
+    // Step 1: Get employerId from the Company collection using companyId
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    const employerId = company.employerId;
+
+    // Step 2: Fetch all jobs using the retrieved employerId
+    const jobs = await Job.find({ employerId });
+
+    if (jobs.length === 0) {
+      return res.status(404).json({ message: 'No jobs found for this company' });
+    }
+
+    // Step 3: Return the job details
+    res.status(200).json({ companyDetails: company, jobs });
+  } catch (error) {
+    console.error('Error fetching jobs:', error.message);
+    res.status(500).json({ message: 'Failed to fetch jobs for the company' });
   }
 };
 

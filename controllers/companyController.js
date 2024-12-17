@@ -80,4 +80,26 @@ const deleteCompany = async (req, res) => {
   }
 };
 
-module.exports = { getCompanies, addCompany, updateCompany, deleteCompany };
+const getAllCompanies = async (req, res) => {
+  try {
+    // Fetch all companies from the database without any filters
+    const companies = await Company.find();
+    res.status(200).json(companies); // Send the list of companies as a response
+  } catch (error) {
+    console.error('Error fetching companies:', error.message);
+    res.status(500).json({ message: 'Failed to fetch companies.' });
+  }
+};
+
+const getCompanyById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("userId",id)
+    const companies = await Company.find({ _id: id });
+    res.status(200).json(companies);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getCompanies, addCompany, updateCompany, deleteCompany ,getAllCompanies,getCompanyById };
