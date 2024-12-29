@@ -41,7 +41,9 @@ app.use('/api/applications', applicationRouter);
 app.use('/api/savedJob', savedJobRouter);
 
 
-
+app.get('/', (req, res) => {
+  res.send('Backend is running');
+});
 
 
 
